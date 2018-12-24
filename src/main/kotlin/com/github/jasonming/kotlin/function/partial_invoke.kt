@@ -1,4 +1,4 @@
-package me.ming.kotlin.function.extension
+package com.github.jasonming.kotlin.function
 
 
 /* **********************************

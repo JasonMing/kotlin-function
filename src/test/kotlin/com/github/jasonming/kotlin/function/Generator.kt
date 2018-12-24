@@ -1,6 +1,7 @@
-package me.ming.kotlin.function.extension
+package com.github.jasonming.kotlin.function
 
-import org.junit.Test
+import org.junit.jupiter.api.Test
+
 
 /**
  *
