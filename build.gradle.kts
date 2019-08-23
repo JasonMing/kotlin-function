@@ -1,25 +1,22 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import org.jetbrains.kotlin.gradle.dsl.Coroutines
 
 group = "com.github.jasonming"
 version = "1.0.0"
 
 plugins {
     base
-    kotlin("jvm") version "1.3.11"
+    kotlin("jvm") version "1.3.40"
     `java-library`
     `maven-publish`
 }
-
-val kotlin_version: String by extra
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    implementation(kotlin("stdlib", "1.3.11"))
-    testImplementation(kotlin("test-junit5", "1.3.11"))
+    implementation(kotlin("stdlib", "1.3.40"))
+    testImplementation(kotlin("test-junit5", "1.3.40"))
     testImplementation("org.junit.jupiter:junit-jupiter-engine:5.3.2")
 }
 

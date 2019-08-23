@@ -1,6 +1,7 @@
 package com.github.jasonming.kotlin.function
 
 import org.junit.jupiter.api.Test
+import kotlin.reflect.KFunction
 
 
 /**
@@ -10,6 +11,7 @@ import org.junit.jupiter.api.Test
  * @since 1.0.0 (2017-07-29)
  */
 
+private const val MAX_PARAMETERS = 22
 private const val PARAMETER_TYPE_PREFIX = "P";
 private const val PARAMETER_NAME_PREFIX = "p";
 private const val RETURN_TYPE_NAME = "R";
@@ -28,17 +30,19 @@ class Generator
 
         val lines = mutableListOf<String>()
 
-        for (fnSize in 2..22)
+        for (fnSize in 2..MAX_PARAMETERS)
         {
-            lines.add("// region: Function$fnSize")
-            for (argSize in 1 until fnSize)
-            {
-                lines.add("""
-fun <${parameterTypes(fnSize, suffix = RETURN_TYPE_NAME).joinToString()}>
-    ((${parameterTypes(fnSize).joinToString()}) -> ${RETURN_TYPE_NAME})
-    .apply(${parameters(argSize).joinToString()})
-    : (${parameterTypes(start = argSize + 1, end = fnSize).joinToString()}) -> ${RETURN_TYPE_NAME}
-    = { ${arguments(start = argSize + 1, end = fnSize).joinToString()} -> this(${arguments(fnSize).joinToString()}) }""")
+            lines.add("// region: Function$fnSize\n")
+            for (argSize in 1 until fnSize) {
+                lines.add(
+                    """
+                    inline fun <${parameterTypes(fnSize, suffix = RETURN_TYPE_NAME).joinToString()}>
+                        ((${parameterTypes(fnSize).joinToString()}) -> $RETURN_TYPE_NAME)
+                        .apply(${parameters(argSize).joinToString()})
+                        : (${parameterTypes(start = argSize + 1, end = fnSize).joinToString()}) -> $RETURN_TYPE_NAME
+                        = { ${arguments(start = argSize + 1, end = fnSize).joinToString()} -> this(${arguments(fnSize).joinToString()}) }
+                    """.trimIndent()
+                )
             } // end `for` @argSize
             lines.add("\n// endregion\n\n")
         } // end `for` @fnSize
@@ -57,17 +61,20 @@ fun <${parameterTypes(fnSize, suffix = RETURN_TYPE_NAME).joinToString()}>
 
         val lines = mutableListOf<String>()
 
-        for (fnSize in 2..22)
+        for (fnSize in 2..MAX_PARAMETERS)
         {
-            lines.add("// region: Function$fnSize")
+            lines.add("// region: Function$fnSize\n")
             for (argSize in 1 until fnSize)
             {
-                lines.add("""
-operator fun <${parameterTypes(fnSize, suffix = RETURN_TYPE_NAME).joinToString()}>
-    ((${parameterTypes(fnSize).joinToString()}) -> ${RETURN_TYPE_NAME})
-    .invoke(${parameters(argSize).joinToString()})
-    : (${parameterTypes(start = argSize + 1, end = fnSize).joinToString()}) -> ${RETURN_TYPE_NAME}
-    = this.apply(${arguments(argSize).joinToString()})""")
+                lines.add(
+                    """
+                    inline operator fun <${parameterTypes(fnSize, suffix = RETURN_TYPE_NAME).joinToString()}>
+                        ((${parameterTypes(fnSize).joinToString()}) -> $RETURN_TYPE_NAME)
+                        .invoke(${parameters(argSize).joinToString()})
+                        : (${parameterTypes(start = argSize + 1, end = fnSize).joinToString()}) -> $RETURN_TYPE_NAME
+                        = this.apply(${arguments(argSize).joinToString()})
+                    """.trimIndent()
+                )
             } // end `for` @argSize
             lines.add("\n// endregion\n\n")
         } // end `for` @fnSize
@@ -86,18 +93,21 @@ operator fun <${parameterTypes(fnSize, suffix = RETURN_TYPE_NAME).joinToString()
 
         val lines = mutableListOf<String>()
 
-        for (fnSize in 1..22)
+        for (fnSize in 1..MAX_PARAMETERS)
         {
-            lines.add("""
-fun <${parameterTypes(fnSize, suffix = RETURN_TYPE_NAME).joinToString()}>
-    ((${parameterTypes(fnSize).joinToString()}) -> ${RETURN_TYPE_NAME})
-    .curry()
-    : ${parameterTypes(fnSize).joinToString(" -> ", transform = { "($it)" })} -> ${RETURN_TYPE_NAME}
-    = ${arguments(fnSize).recurse("this(${arguments(fnSize).joinToString()})", { acc, item -> "{ $item -> $acc }" })}""")
+            lines.add(
+                """
+                inline fun <${parameterTypes(fnSize, suffix = RETURN_TYPE_NAME).joinToString()}>
+                    ((${parameterTypes(fnSize).joinToString()}) -> $RETURN_TYPE_NAME)
+                    .curry()
+                    : ${parameterTypes(fnSize).joinToString(" -> ", transform = { "($it)" })} -> $RETURN_TYPE_NAME
+                    = ${arguments(fnSize).recurse("this(${arguments(fnSize).joinToString()})", { acc, item -> "{ $item -> $acc }" })}
+                """.trimIndent()
+            )
             //  = ${arguments(fnSize).recurse("\n        this(${arguments(fnSize).joinToString()})\n     ", { acc, item -> "{ $item -> $acc }" })}
         } // end `for` @fnSize
 
-        lines.forEach { println(it) }
+        lines.forEach { println("$it\n") }
     }
 
     @Test
@@ -111,17 +121,20 @@ fun <${parameterTypes(fnSize, suffix = RETURN_TYPE_NAME).joinToString()}>
 
         val lines = mutableListOf<String>()
 
-        for (fnSize in 1..22)
+        for (fnSize in 1..MAX_PARAMETERS)
         {
-            lines.add("""
-fun <${parameterTypes(fnSize, suffix = RETURN_TYPE_NAME).joinToString()}>
-    (${parameterTypes(fnSize).joinToString(" -> ", transform = { "($it)" })} -> ${RETURN_TYPE_NAME})
-    .uncurry()
-    : (${parameterTypes(fnSize).joinToString()}) -> ${RETURN_TYPE_NAME}
-    = { ${arguments(fnSize).joinToString()} -> this${arguments(fnSize).joinToString(")(", "(", ")")} }""")
+            lines.add(
+                """
+                fun <${parameterTypes(fnSize, suffix = RETURN_TYPE_NAME).joinToString()}>
+                    (${parameterTypes(fnSize).joinToString(" -> ", transform = { "($it)" })} -> $RETURN_TYPE_NAME)
+                    .uncurry()
+                    : (${parameterTypes(fnSize).joinToString()}) -> $RETURN_TYPE_NAME
+                    = { ${arguments(fnSize).joinToString()} -> this${arguments(fnSize).joinToString(")(", "(", ")")} }
+                """.trimIndent()
+            )
         } // end `for` @fnSize
 
-        lines.forEach { println(it) }
+        lines.forEach { println("$it\n") }
     }
 }
 
@@ -130,10 +143,10 @@ fun <${parameterTypes(fnSize, suffix = RETURN_TYPE_NAME).joinToString()}>
 private data class Parameter(val i: Int)
 {
     val type: String
-        get() = "${PARAMETER_TYPE_PREFIX}$i"
+        get() = "$PARAMETER_TYPE_PREFIX$i"
 
     val name: String
-        get() = "${PARAMETER_NAME_PREFIX}$i"
+        get() = "$PARAMETER_NAME_PREFIX$i"
 
     override fun toString(): String
         = "$name: $type"
@@ -147,7 +160,7 @@ private fun parameters(end: Int, start: Int = 1): Sequence<Parameter> =
 private fun arguments(end: Int, start: Int = 1): Sequence<String> =
     (start..end)
         .asSequence()
-        .map { "${PARAMETER_NAME_PREFIX}$it" }
+        .map { "$PARAMETER_NAME_PREFIX$it" }
 
 private fun parameterTypes(end: Int, start: Int = 1, suffix: String? = null): Sequence<String> =
     parameters(end, start)
